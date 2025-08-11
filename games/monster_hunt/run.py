@@ -1,0 +1,72 @@
+"""Main file for generating results for Monster Hunt game."""
+
+try:
+    from games.monster_hunt.gamestate import GameState
+    from games.monster_hunt.game_config import GameConfig
+    from games.monster_hunt.game_optimization import OptimizationSetup
+except ImportError:
+    from gamestate import GameState
+    from game_config import GameConfig
+    from game_optimization import OptimizationSetup
+from optimization_program.run_script import OptimizationExecution
+from utils.game_analytics.run_analysis import create_stat_sheet
+from utils.rgs_verification import execute_all_tests
+from src.state.run_sims import create_books
+from src.write_data.write_configs import generate_configs
+
+if __name__ == "__main__":
+
+    num_threads = 10
+    rust_threads = 20
+    batching_size = 5000
+    compression = True
+    profiling = False
+
+    num_sim_args = {
+        "base": int(1e2),      # Reduced from 10,000 to 100 for faster testing
+        "bonus_3": int(1e2),   # Reduced from 10,000 to 100 for faster testing
+        "bonus_4": int(1e2),   # Reduced from 10,000 to 100 for faster testing
+    }
+
+    run_conditions = {
+        "run_sims": True,
+        "run_optimization": True,
+        "run_analysis": True,
+        "run_format_checks": True,
+    }
+    target_modes = list(num_sim_args.keys())
+
+    config = GameConfig()
+    gamestate = GameState(config)
+    if run_conditions["run_optimization"] or run_conditions["run_analysis"]:
+        optimization_setup_class = OptimizationSetup(config)
+
+    if run_conditions["run_sims"]:
+        create_books(
+            gamestate,
+            config,
+            num_sim_args,
+            batching_size,
+            num_threads,
+            compression,
+            profiling,
+        )
+
+    generate_configs(gamestate)
+
+    if run_conditions["run_optimization"]:
+        OptimizationExecution().run_all_modes(config, target_modes, rust_threads)
+        generate_configs(gamestate)
+
+    if run_conditions["run_analysis"]:
+        custom_keys = [
+            {"symbol": "scatter"},      # Rabbit symbol analysis
+            {"symbol": "wild"},         # Golden Carrot analysis
+            {"symbol": "bonus"},        # Bonus symbol analysis
+            {"bonus_type": "carrot_ambush"},     # Carrot Ambush bonus analysis
+            {"bonus_type": "ninjutsu_reign"},    # Ninjutsu Rabbit Reign bonus analysis
+        ]
+        create_stat_sheet(gamestate, custom_keys=custom_keys)
+
+    if run_conditions["run_format_checks"]:
+        execute_all_tests(config)
