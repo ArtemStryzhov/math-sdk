@@ -92,12 +92,12 @@ class GameConfig(Config):
         # Free spin triggers
         self.freespin_triggers = {
             self.basegame_type: {3: 10, 4: 10},               # base: 3 або 4 бонуси → 10 FS
-            self.freegame_type: {2: 3, 3: 5, 4: 8},           # retrigger у фріспіні
+            self.freegame_type: {},           # retrigger у фріспіні
         }
 
         self.anticipation_triggers = {
             self.basegame_type: min(self.freespin_triggers[self.basegame_type].keys()) - 1,
-            self.freegame_type: min(self.freespin_triggers[self.freegame_type].keys()) - 1,
+            self.freegame_type: 999,
         }
 
         # Reels
