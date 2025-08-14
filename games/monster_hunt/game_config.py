@@ -111,8 +111,8 @@ class GameConfig(Config):
 
         # Multiplier values for Wild and Scatter symbols
         self.padding_symbol_values = {
-            "W": {"multiplier": {2: 2, 3: 2, 4: 2, 5: 2, 10: 2}},  # Reduced from 100x to 2x
-            "S": {"multiplier": {2: 2, 3: 2, 4: 2, 5: 2, 10: 2, 15: 2, 20: 2}},  # Reduced from 100x to 2x
+            "W": {"multiplier": {2: 100, 3: 80, 4: 50, 5: 20, 10: 10, 20: 5, 50: 1}},  # Reduced from 100x to 2x
+            "S": {"multiplier": {2: 100, 3: 80, 4: 50, 5: 20, 10: 10, 20: 5, 50: 1}},  # Reduced from 100x to 2x
         }
 
         # Bet modes / Distributions
@@ -146,7 +146,7 @@ class GameConfig(Config):
                     # ),
                     Distribution(
                         criteria="freegame",
-                        quota=0.08,  # Increased from 5% to 8% for better balance
+                        quota=0.02,  # Increased from 5% to 8% for better balance
                         conditions={
                             "reel_weights": {
                                 self.basegame_type: {"BR0": 1},
@@ -156,16 +156,30 @@ class GameConfig(Config):
                             "mult_values": {
                                 self.basegame_type: {1: 1},
                                 self.freegame_type: {
-                                    2: 1, 3: 1, 4: 1, 5: 1, 10: 1, 15: 1, 20: 1,  # Minimal multipliers
+                                    2: 100, 3: 80, 4: 50, 5: 20, 10: 10, 20: 5, 50: 1  # Minimal multipliers
                                 },
                             },
                             "force_wincap": False,
                             "force_freegame": True,
                         },
                     ),
+                                        Distribution(
+                        criteria="0",
+                        quota=0.58,
+                        win_criteria=0.0,
+                        conditions={
+                            "reel_weights": {self.basegame_type: {"BR0": 1}},
+                            "mult_values": {
+                                self.basegame_type: {1: 1},
+                                self.freegame_type: {2: 100, 3: 80, 4: 50, 5: 20, 10: 10, 20: 5, 50: 1},
+                            },
+                            "force_wincap": False,
+                            "force_freegame": False,
+                        },
+                    ),
                     Distribution(
                         criteria="basegame",
-                        quota=0.92,  # Adjusted to 92% to balance total to 100%
+                        quota=0.4,  # Adjusted to 92% to balance total to 100%
                         conditions={
                             "reel_weights": {
                                 self.basegame_type: {"BR0": 1},
@@ -200,7 +214,7 @@ class GameConfig(Config):
                             "scatter_triggers": {3: 100},
                             "mult_values": {
                                 self.basegame_type: {1: 1},
-                                self.freegame_type: {2: 1, 3: 1, 4: 1, 5: 1, 10: 1, 15: 1, 20: 1},  # Minimal multipliers
+                                self.freegame_type: {2: 100, 3: 80, 4: 50, 5: 20, 10: 10, 20: 5, 50: 1},  # Minimal multipliers
                             },
                             "force_freegame": True,
                         },
@@ -227,7 +241,7 @@ class GameConfig(Config):
                             "scatter_triggers": {4: 100},
                             "mult_values": {
                                 self.basegame_type: {1: 1},
-                                self.freegame_type: {2: 1, 3: 1, 4: 1, 5: 1, 10: 1, 15: 1, 20: 1},  # Minimal multipliers
+                                self.freegame_type: {2: 100, 3: 80, 4: 50, 5: 20, 10: 10, 20: 5, 50: 1},  # Minimal multipliers
                             },
                             "force_freegame": True,
                         },

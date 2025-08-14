@@ -297,6 +297,7 @@ class GameConfig(Config):
                             "force_freegame": False,
                         },
                     ),
+                    
                     Distribution(
                         criteria="basegame",
                         quota=0.5,
