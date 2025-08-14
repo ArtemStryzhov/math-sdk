@@ -16,16 +16,16 @@ from src.write_data.write_configs import generate_configs
 
 if __name__ == "__main__":
 
-    num_threads = 5  # Reduced from 10 for stability
+    num_threads = 10
     rust_threads = 20
-    batching_size = 1000  # Reduced from 5000 for stability
+    batching_size = 5000
     compression = True
     profiling = False
 
     num_sim_args = {
-        "base": int(1e1),      # Reduced from 100 to 10 for stability
-        "bonus_3": int(1e1),   # Reduced from 100 to 10 for stability
-        "bonus_4": int(1e1),   # Reduced from 100 to 10 for stability
+        "base": int(1e4),      # Reduced from 100 to 10 for stability
+        "bonus_3": int(1e4),   # Reduced from 100 to 10 for stability
+        "bonus_4": int(1e4),   # Reduced from 100 to 10 for stability
     }
 
     run_conditions = {
