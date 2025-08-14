@@ -1,4 +1,4 @@
-"""Game-specific configuration file for Ninja Rabbit game, inherits from src/config/config.py"""
+"""Game-specific configuration file for Monster Hunt game, inherits from src/config/config.py"""
 
 import os
 try:
@@ -37,8 +37,8 @@ class GameConfig(Config):
         # Game Dimensions - 5 reels, 5 rows
         self.num_reels = 5
         self.num_rows = [5] * self.num_reels
-        
-        # Board and Symbol Properties
+
+        # Paytable
         self.paytable = {
             # Low symbols
             (3, "L1"): 0.20, (4, "L1"): 0.50, (5, "L1"): 2.00,
@@ -46,73 +46,72 @@ class GameConfig(Config):
             (3, "L3"): 0.30, (4, "L3"): 0.70, (5, "L3"): 3.00,
             (3, "L4"): 0.30, (4, "L4"): 0.70, (5, "L4"): 3.00,
             (3, "L5"): 0.50, (4, "L5"): 1.00, (5, "L5"): 5.00,
-            
+
             # High symbols
             (3, "H1"): 1.00, (4, "H1"): 2.00, (5, "H1"): 8.00,
             (3, "H2"): 1.50, (4, "H2"): 3.00, (5, "H2"): 10.00,
             (3, "H3"): 1.50, (4, "H3"): 5.00, (5, "H3"): 15.00,
             (3, "H4"): 2.00, (4, "H4"): 10.00, (5, "H4"): 20.00,
-            
+
             # Special symbols
-            (5, "W"): 25.00,   # Wild (Golden Carrot)
-            (5, "S"): 25.00,   # Scatter (Rabbit)
+            (5, "W"): 25.00,   # Wild
+            (5, "S"): 25.00,   # Scatter
         }
 
-        # 15 predefined paylines starting from leftmost reel
+        # 15 paylines
         self.paylines = {
-            1: [2, 2, 2, 2, 2],      # Middle horizontal
-            2: [1, 1, 1, 1, 1],      # Upper horizontal
-            3: [3, 3, 3, 3, 3],      # Lower horizontal
-            4: [0, 0, 0, 0, 0],      # Top horizontal
-            5: [4, 4, 4, 4, 4],      # Bottom horizontal
-            6: [0, 1, 2, 1, 0],      # V shape
-            7: [4, 3, 2, 3, 4],      # Inverted V shape
-            8: [1, 2, 2, 2, 1],      # U shape
-            9: [3, 2, 2, 2, 3],      # Inverted U shape
-            10: [0, 1, 1, 1, 0],     # Small U shape
-            11: [4, 3, 3, 3, 4],     # Small inverted U shape
-            12: [1, 0, 1, 0, 1],     # Zigzag
-            13: [3, 4, 3, 4, 3],     # Inverted zigzag
-            14: [2, 1, 0, 1, 2],     # Diamond
-            15: [2, 3, 4, 3, 2],     # Inverted diamond
+            1: [2, 2, 2, 2, 2],
+            2: [1, 1, 1, 1, 1],
+            3: [3, 3, 3, 3, 3],
+            4: [0, 0, 0, 0, 0],
+            5: [4, 4, 4, 4, 4],
+            6: [0, 1, 2, 1, 0],
+            7: [4, 3, 2, 3, 4],
+            8: [1, 2, 2, 2, 1],
+            9: [3, 2, 2, 2, 3],
+            10: [0, 1, 1, 1, 0],
+            11: [4, 3, 3, 3, 4],
+            12: [1, 0, 1, 0, 1],
+            13: [3, 4, 3, 4, 3],
+            14: [2, 1, 0, 1, 2],
+            15: [2, 3, 4, 3, 2],
         }
 
         self.include_padding = True
         self.special_symbols = {
-            "wild": ["W"],           # Golden Carrot
-            "scatter": ["S"],        # Rabbit
-            "multiplier": ["W", "S"], # Both can have multipliers
-            "bonus": ["B"]           # Bonus symbol
+            "wild": ["W"],
+            "scatter": ["S"],
+            "multiplier": ["W", "S"],
+            "bonus": ["B"],
         }
 
         # Free spin triggers
         self.freespin_triggers = {
-            self.basegame_type: {3: 10, 4: 10},  # 3 or 4 bonus symbols trigger free spins
-            self.freegame_type: {2: 3, 3: 5, 4: 8},  # Retrigger possibilities
+            self.basegame_type: {3: 10, 4: 10},               # base: 3 або 4 бонуси → 10 FS
+            self.freegame_type: {2: 3, 3: 5, 4: 8},           # retrigger у фріспіні
         }
-        
+
         self.anticipation_triggers = {
             self.basegame_type: min(self.freespin_triggers[self.basegame_type].keys()) - 1,
             self.freegame_type: min(self.freespin_triggers[self.freegame_type].keys()) - 1,
         }
-        
+
         # Reels
         reels = {"BR0": "BR0.csv", "FR0": "FR0.csv", "WCAP": "FRWCAP.csv"}
         self.reels = {}
         for r, f in reels.items():
-            self.reels[r] = self.read_reels_csv(
-                os.path.join(self.reels_path, f))
+            self.reels[r] = self.read_reels_csv(os.path.join(self.reels_path, f))
 
         self.padding_reels[self.basegame_type] = self.reels["BR0"]
         self.padding_reels[self.freegame_type] = self.reels["FR0"]
-        
+
         # Multiplier values for Wild and Scatter symbols
         self.padding_symbol_values = {
             "W": {"multiplier": {2: 100, 3: 50, 4: 50, 5: 50, 10: 30}},
-            "S": {"multiplier": {2: 100, 3: 50, 4: 50, 5: 50, 10: 30, 15: 20, 20: 10}}
+            "S": {"multiplier": {2: 100, 3: 50, 4: 50, 5: 50, 10: 30, 15: 20, 20: 10}},
         }
 
-        # Game logic simulation conditions
+        # Bet modes / Distributions
         self.bet_modes = [
             BetMode(
                 name="base",
@@ -160,12 +159,16 @@ class GameConfig(Config):
                             "force_freegame": True,
                         },
                     ),
+                    # === ВАЖЛИВО: додали self.freegame_type у reel_weights ===
                     Distribution(
                         criteria="0",
                         quota=0.4,
                         win_criteria=0.0,
                         conditions={
-                            "reel_weights": {self.basegame_type: {"BR0": 1}},
+                            "reel_weights": {
+                                self.basegame_type: {"BR0": 1},
+                                self.freegame_type: {"FR0": 1},
+                            },
                             "mult_values": {
                                 self.basegame_type: {1: 1},
                                 self.freegame_type: {2: 100, 3: 80, 4: 50, 5: 20, 10: 10, 15: 5, 20: 1},
@@ -174,12 +177,18 @@ class GameConfig(Config):
                             "force_freegame": False,
                         },
                     ),
+                    # === ВАЖЛИВО: додали self.freegame_type у reel_weights ===
                     Distribution(
                         criteria="basegame",
                         quota=0.5,
                         conditions={
-                            "reel_weights": {self.basegame_type: {"BR0": 1}},
-                            "mult_values": {self.basegame_type: {1: 1}},
+                            "reel_weights": {
+                                self.basegame_type: {"BR0": 1},
+                                self.freegame_type: {"FR0": 1},
+                            },
+                            "mult_values": {
+                                self.basegame_type: {1: 1},
+                            },
                             "force_wincap": False,
                             "force_freegame": False,
                         },
@@ -188,7 +197,7 @@ class GameConfig(Config):
             ),
             BetMode(
                 name="bonus_3",
-                cost=100.0,  # 3 bonus symbols bonus mode costs x100
+                cost=100.0,  # 3 bonus symbols
                 rtp=self.rtp,
                 max_win=self.wincap,
                 auto_close_disabled=False,
@@ -203,7 +212,7 @@ class GameConfig(Config):
                                 self.basegame_type: {"BR0": 1},
                                 self.freegame_type: {"FR0": 1},
                             },
-                            "scatter_triggers": {3: 100},  # Force 3 bonus symbols
+                            "scatter_triggers": {3: 100},
                             "mult_values": {
                                 self.basegame_type: {1: 1},
                                 self.freegame_type: {2: 100, 3: 80, 4: 50, 5: 20, 10: 10, 15: 5, 20: 1},
@@ -215,7 +224,7 @@ class GameConfig(Config):
             ),
             BetMode(
                 name="bonus_4",
-                cost=300.0,  # 4 bonus symbols bonus mode costs x300
+                cost=300.0,  # 4 bonus symbols
                 rtp=self.rtp,
                 max_win=self.wincap,
                 auto_close_disabled=False,
@@ -230,7 +239,7 @@ class GameConfig(Config):
                                 self.basegame_type: {"BR0": 1},
                                 self.freegame_type: {"FR0": 1},
                             },
-                            "scatter_triggers": {4: 100},  # Force 4 bonus symbols
+                            "scatter_triggers": {4: 100},
                             "mult_values": {
                                 self.basegame_type: {1: 1},
                                 self.freegame_type: {2: 100, 3: 80, 4: 50, 5: 20, 10: 10, 15: 5, 20: 1},

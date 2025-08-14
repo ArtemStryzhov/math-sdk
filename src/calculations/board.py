@@ -10,22 +10,68 @@ from src.events.events import reveal_event
 class Board(GeneralGameState):
     """Handles generation of a game board and symbols"""
 
+    # ---------- Utility: normalize gametype keys ----------
+    _MODE_ALIASES = {
+        "freegame": ["freespin", "free_spin", "fg"],
+        "freespin": ["freegame", "free_spin", "fg"],
+        "free_spin": ["freegame", "freespin", "fg"],
+        "fg": ["freegame", "freespin", "free_spin"],
+        "base": ["basegame", "main"],
+        "basegame": ["base", "main"],
+        "main": ["base", "basegame"],
+    }
+
+    def _resolve_mode_key(self, mapping: dict, mode: str) -> str:
+        """
+        Return a key present in `mapping` that corresponds to `mode`,
+        trying common aliases if needed. Raises KeyError with helpful
+        context if nothing matches.
+        """
+        if mode in mapping:
+            return mode
+        for alt in self._MODE_ALIASES.get(mode, []):
+            if alt in mapping:
+                return alt
+        # also try symmetric alias lookup (if user configured 'free_spin' but runtime gives 'freegame', etc.)
+        for canonical, alts in self._MODE_ALIASES.items():
+            if mode in alts and canonical in mapping:
+                return canonical
+        raise KeyError(
+            f"Mapping has no key for gametype '{mode}'. "
+            f"Available keys: {list(mapping.keys())}. "
+            f"Tip: unify labels (e.g., 'freegame' vs 'freespin') "
+            f"or rely on this alias resolver."
+        )
+
+    # ---------- Core board builders ----------
+
     def create_board_reelstrips(self) -> None:
         """Randomly selects stopping positions from a reelstrip."""
         if self.config.include_padding:
             top_symbols = []
             bottom_symbols = []
+
         self.refresh_special_syms()
-        self.reelstrip_id = get_random_outcome(
-            self.get_current_distribution_conditions()["reel_weights"][self.gametype]
-        )
+
+        dist = self.get_current_distribution_conditions()
+        reel_weights_by_mode = dist["reel_weights"]
+        mode_key = self._resolve_mode_key(reel_weights_by_mode, self.gametype)
+
+        self.reelstrip_id = get_random_outcome(reel_weights_by_mode[mode_key])
         self.reelstrip = self.config.reels[self.reelstrip_id]
+
         anticipation = [0] * self.config.num_reels
         board = [[]] * self.config.num_reels
         for i in range(self.config.num_reels):
             board[i] = [0] * self.config.num_rows[i]
+
         reel_positions = [random.randrange(0, len(self.reelstrip[reel])) for reel in range(self.config.num_reels)]
         padding_positions = [0] * self.config.num_reels
+
+        # anticipation thresholds depend on gametype too -> normalize key
+        ant_triggers_by_mode = self.config.anticipation_triggers
+        ant_mode_key = self._resolve_mode_key(ant_triggers_by_mode, self.gametype)
+
         first_scatter_reel = -1
         for reel in range(self.config.num_reels):
             reel_pos = reel_positions[reel]
@@ -50,7 +96,7 @@ class Board(GeneralGameState):
                                 if (
                                     board[reel][row].check_attribute("scatter")
                                     and len(self.special_syms_on_board[special_symbol])
-                                    >= self.config.anticipation_triggers[self.gametype]
+                                    >= self.config.anticipation_triggers[ant_mode_key]
                                     and first_scatter_reel == -1
                                 ):
                                     first_scatter_reel = reel + 1
@@ -95,6 +141,10 @@ class Board(GeneralGameState):
             if reel_positions[r] is None:
                 reel_positions[r] = random.randrange(0, len(self.reelstrip[r]))
 
+        # anticipation thresholds depend on gametype -> normalize key
+        ant_triggers_by_mode = self.config.anticipation_triggers
+        ant_mode_key = self._resolve_mode_key(ant_triggers_by_mode, self.gametype)
+
         padding_positions = [0] * self.config.num_reels
         first_scatter_reel = -1
         for reel in range(self.config.num_reels):
@@ -121,7 +171,7 @@ class Board(GeneralGameState):
                                 if (
                                     board[reel][row].check_attribute("scatter")
                                     and len(self.special_syms_on_board[special_symbol])
-                                    >= self.config.anticipation_triggers[self.gametype]
+                                    >= self.config.anticipation_triggers[ant_mode_key]
                                     and first_scatter_reel == -1
                                 ):
                                     first_scatter_reel = reel + 1
@@ -141,6 +191,8 @@ class Board(GeneralGameState):
             self.top_symbols = top_symbols
             self.bottom_symbols = bottom_symbols
 
+    # ---------- Helpers / misc ----------
+
     def create_symbol(self, name: str) -> object:
         """Create a new symbol and assign relevant attributes."""
         if name not in self.symbol_storage.symbols:
@@ -149,11 +201,10 @@ class Board(GeneralGameState):
         if name in self.special_symbol_functions:
             for func in self.special_symbol_functions[name]:
                 func(symObject)
-
         return symObject
 
     def refresh_special_syms(self) -> None:
-        """Reset recorded speical symbols on board."""
+        """Reset recorded special symbols on board."""
         self.special_syms_on_board = {}
         for s in self.config.special_symbols:
             self.special_syms_on_board[s] = []
@@ -193,42 +244,32 @@ class Board(GeneralGameState):
         return board_str
 
     def draw_board(self, emit_event: bool = True, trigger_symbol: str = "scatter") -> None:
-        """Instead of retrying to draw a board, force the initial revel to have a
-        specific number of scatters, if the betmode criteria specifies this."""
-        if (
-            self.get_current_distribution_conditions()["force_freegame"]
-            and self.gametype == self.config.basegame_type
-        ):
-            num_scatters = get_random_outcome(self.get_current_distribution_conditions()["scatter_triggers"])
+        """
+        Instead of retrying to draw a board, force the initial reveal to have a
+        specific number of scatters, if the betmode criteria specifies this.
+        """
+        dist = self.get_current_distribution_conditions()
+
+        # scatter_triggers and force_freegame are not gametype-indexed,
+        # but when we need freespin thresholds, normalize gametype key safely.
+        fs_triggers_by_mode = self.config.freespin_triggers
+        fs_mode_key = self._resolve_mode_key(fs_triggers_by_mode, self.gametype)
+
+        if dist["force_freegame"] and self.gametype == self.config.basegame_type:
+            num_scatters = get_random_outcome(dist["scatter_triggers"])
             self.force_special_board(trigger_symbol, num_scatters)
-        elif (
-            not (self.get_current_distribution_conditions()["force_freegame"])
-            and self.gametype == self.config.basegame_type
-        ):
+        elif (not dist["force_freegame"]) and self.gametype == self.config.basegame_type:
             self.create_board_reelstrips()
-            while self.count_special_symbols(trigger_symbol) >= min(
-                self.config.freespin_triggers[self.gametype].keys()
-            ):
+            while self.count_special_symbols(trigger_symbol) >= min(self.config.freespin_triggers[fs_mode_key].keys()):
                 self.create_board_reelstrips()
         else:
             self.create_board_reelstrips()
+
         if emit_event:
             reveal_event(self)
 
     def force_special_board(self, force_criteria: str, num_force_syms: int) -> None:
-        """Force a board to have a specified number of symbols.
-        Set a specific type of special symbol on a given number of reels.
-        This function is mostly used to set the board so that there is a given number
-        of scatter symbols.
-
-        Args:
-            force_criteria: The type of symbol to force on the board. (e.g. "scatter")
-            num_force_syms: The number of symbols to force on the board.
-
-        Note: If it is possible for two target symbols to appear on one reel, this method
-        will not be able to guarantee an exact number of target symbols or actually random
-        reel positions. I.e. Ensure the reels do not have stacked scatter symbols.
-        """
+        """Force a board to have a specified number of symbols."""
         while True:
             self._force_special_board(force_criteria, num_force_syms)
             if (
@@ -246,9 +287,11 @@ class Board(GeneralGameState):
         """
         Helper function for forcing special (or name specific) symbols
         """
-        reelstrip_id = get_random_outcome(
-            self.get_current_distribution_conditions()["reel_weights"][self.gametype]
-        )
+        dist = self.get_current_distribution_conditions()
+        reel_weights_by_mode = dist["reel_weights"]
+        mode_key = self._resolve_mode_key(reel_weights_by_mode, self.gametype)
+
+        reelstrip_id = get_random_outcome(reel_weights_by_mode[mode_key])
         reelstops = self.get_syms_on_reel(reelstrip_id, force_criteria)
 
         sym_prob = []
@@ -287,7 +330,7 @@ class Board(GeneralGameState):
         return len(self.special_syms_on_board[special_sym_criteria])
 
     def count_symbols_on_board(self, symbol_name: str) -> int:
-        """Count number of sumbols on the board matching the target name."""
+        """Count number of symbols on the board matching the target name."""
         symbol_count = 0
         for idx, _ in enumerate(self.board):
             for idy, _ in enumerate(self.board[idx]):

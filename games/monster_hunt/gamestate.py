@@ -13,7 +13,7 @@ except ImportError:
 
 
 class GameState(GameStateOverride):
-    """Handles game logic and events for Ninja Rabbit game."""
+    """Handles game logic and events for Monster Hunt game."""
 
     def run_spin(self, sim):
         self.reset_seed(sim)
@@ -22,13 +22,16 @@ class GameState(GameStateOverride):
             self.reset_book()
             self.draw_board()
 
-            # Handle sticky scatter symbols in bonus games
+            # Sticky scatters (якщо реалізовані у твоєму override)
             self.handle_sticky_scatter_symbols()
 
-            # Evaluate wins, update wallet, transmit events
+            # Лінії/виплати
             self.evaluate_lines_board()
 
+            # Збір статистики по режимах
             self.win_manager.update_gametype_wins(self.gametype)
+
+            # Запуск фріспінів із бази (3+ бонусів)
             if self.check_fs_condition():
                 self.run_freespin_from_base()
 
@@ -38,36 +41,41 @@ class GameState(GameStateOverride):
         self.imprint_wins()
 
     def run_freespin(self):
+        # --- ВАЖЛИВО: явно переключаємо режим у freegame ---
+        prev_mode = self.gametype
+        self.gametype = self.config.freegame_type
+
         self.reset_fs_spin()
         while self.fs < self.tot_fs:
             self.update_freespin()
             self.draw_board()
 
-            # Handle sticky scatter symbols in bonus games
             self.handle_sticky_scatter_symbols()
-
             self.evaluate_lines_board()
 
+            # Ретрігер фріспінів (2+ бонусів у фріспіні)
             if self.check_fs_condition():
                 self.update_fs_retrigger_amt()
 
             self.win_manager.update_gametype_wins(self.gametype)
 
+        # Повертаємо попередній режим після фріспінів
+        self.gametype = prev_mode
         self.end_freespin()
 
     def check_fs_condition(self):
         """Check if free spins should be triggered based on bonus symbols."""
         bonus_count = self.count_bonus_symbols()
-        
+
         if self.gametype == self.config.basegame_type:
-            # Base game: 3 or 4 bonus symbols trigger free spins
+            # Base game: 3 або 4 бонус-символи → фріспіни
             if bonus_count >= 3:
                 return True
         elif self.gametype == self.config.freegame_type:
-            # Free game: retrigger possibilities
+            # Free game: ретрігер (2+)
             if bonus_count >= 2:
                 return True
-        
+
         return False
 
     def count_bonus_symbols(self):
@@ -82,11 +90,11 @@ class GameState(GameStateOverride):
     def determine_bonus_type(self):
         """Determine which bonus game to trigger based on bonus symbol count."""
         bonus_count = self.count_bonus_symbols()
-        
+
         if bonus_count == 3:
-            return "carrot_ambush"  # Carrot Ambush Bonus - 10 free spins
+            return "carrot_ambush"      # 10 free spins
         elif bonus_count == 4:
-            return "ninjutsu_reign"  # Ninjutsu Rabbit Reign Bonus - 10 free spins
+            return "ninjutsu_reign"     # 10 free spins
         else:
             return None
 
@@ -94,8 +102,6 @@ class GameState(GameStateOverride):
         """Trigger free spins from base game with appropriate bonus type."""
         bonus_type = self.determine_bonus_type()
         if bonus_type:
-            # Set bonus type for the free spins
             self.bonus_type = bonus_type
-            # Trigger 10 free spins
             self.tot_fs = 10
             self.run_freespin()
