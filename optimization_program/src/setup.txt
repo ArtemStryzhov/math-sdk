@@ -10,5 +10,5 @@ test_spins_weights;[0.3,0.4,0.3]
 simulation_trials;5000
 graph_indexes;0
 run_1000_batch;False
-path_to_games;/Users/artemstryzhov/Documents/Monster-hunt-sdk/math-sdk/games
+path_to_games;/Users/yevhenchernenko/sdk/math-sdk/games
 pmb_rtp;1.0

@@ -32,10 +32,10 @@ class GameStateOverride(GameExecutables):
         """Assign multiplier value to Wild symbol (Golden Carrot)."""
         multiplier_value = 1
         if self.gametype == self.config.freegame_type:
-            # Wild symbols always land with x2, x3, x4, x5, or x10
-            possible_multipliers = [2, 3, 4, 5, 10]
+            # Wild symbols with moderate multipliers for target RTP
+            possible_multipliers = [1, 1, 1, 2, 2]  # Mostly 1x, some 2x
             multiplier_value = get_random_outcome(
-                {mult: 100 for mult in possible_multipliers}
+                {mult: 80 if mult == 1 else 20 for mult in possible_multipliers}  # 80% chance of 1x, 20% chance of 2x
             )
         symbol.assign_attribute({"multiplier": multiplier_value})
 
@@ -43,10 +43,10 @@ class GameStateOverride(GameExecutables):
         """Assign multiplier value to Scatter symbol (Rabbit)."""
         multiplier_value = 1
         if self.gametype == self.config.freegame_type:
-            # Scatter symbols land with random multiplier: 2x, 3x, 4x, 5x, 10x, 15x, or 20x
-            possible_multipliers = [2, 3, 4, 5, 10, 15, 20]
+            # Scatter symbols with moderate multipliers for target RTP
+            possible_multipliers = [1, 1, 1, 1, 2, 2, 2]  # Mostly 1x, some 2x
             multiplier_value = get_random_outcome(
-                {mult: 100 for mult in possible_multipliers}
+                {mult: 75 if mult == 1 else 25 for mult in possible_multipliers}  # 75% chance of 1x, 25% chance of 2x
             )
         symbol.assign_attribute({"multiplier": multiplier_value})
 

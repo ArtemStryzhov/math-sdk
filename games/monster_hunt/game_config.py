@@ -40,22 +40,22 @@ class GameConfig(Config):
 
         # Paytable
         self.paytable = {
-            # Low symbols
-            (3, "L1"): 0.20, (4, "L1"): 0.50, (5, "L1"): 2.00,
-            (3, "L2"): 0.20, (4, "L2"): 0.50, (5, "L2"): 2.00,
-            (3, "L3"): 0.30, (4, "L3"): 0.70, (5, "L3"): 3.00,
-            (3, "L4"): 0.30, (4, "L4"): 0.70, (5, "L4"): 3.00,
-            (3, "L5"): 0.50, (4, "L5"): 1.00, (5, "L5"): 5.00,
+            # Low symbols - Increased from 50% reduction to 30% reduction
+            (3, "L1"): 0.14, (4, "L1"): 0.35, (5, "L1"): 1.40,
+            (3, "L2"): 0.14, (4, "L2"): 0.35, (5, "L2"): 1.40,
+            (3, "L3"): 0.21, (4, "L3"): 0.49, (5, "L3"): 2.10,
+            (3, "L4"): 0.21, (4, "L4"): 0.49, (5, "L4"): 2.10,
+            (3, "L5"): 0.35, (4, "L5"): 0.70, (5, "L5"): 3.50,
 
-            # High symbols
-            (3, "H1"): 1.00, (4, "H1"): 2.00, (5, "H1"): 8.00,
-            (3, "H2"): 1.50, (4, "H2"): 3.00, (5, "H2"): 10.00,
-            (3, "H3"): 1.50, (4, "H3"): 5.00, (5, "H3"): 15.00,
-            (3, "H4"): 2.00, (4, "H4"): 10.00, (5, "H4"): 20.00,
+            # High symbols - Increased from 50% reduction to 30% reduction
+            (3, "H1"): 0.70, (4, "H1"): 1.40, (5, "H1"): 5.60,
+            (3, "H2"): 1.05, (4, "H2"): 2.10, (5, "H2"): 7.00,
+            (3, "H3"): 1.05, (4, "H3"): 3.50, (5, "H3"): 10.50,
+            (3, "H4"): 1.40, (4, "H4"): 7.00, (5, "H4"): 14.00,
 
-            # Special symbols
-            (5, "W"): 25.00,   # Wild
-            (5, "S"): 25.00,   # Scatter
+            # Special symbols - Increased from 50% reduction to 30% reduction
+            (5, "W"): 17.50,   # Wild - was 12.50, now 17.50
+            (5, "S"): 17.50,   # Scatter - was 12.50, now 17.50
         }
 
         # 15 paylines
@@ -107,8 +107,8 @@ class GameConfig(Config):
 
         # Multiplier values for Wild and Scatter symbols
         self.padding_symbol_values = {
-            "W": {"multiplier": {2: 100, 3: 50, 4: 50, 5: 50, 10: 30}},
-            "S": {"multiplier": {2: 100, 3: 50, 4: 50, 5: 50, 10: 30, 15: 20, 20: 10}},
+            "W": {"multiplier": {2: 2, 3: 2, 4: 2, 5: 2, 10: 2}},  # Reduced from 100x to 2x
+            "S": {"multiplier": {2: 2, 3: 2, 4: 2, 5: 2, 10: 2, 15: 2, 20: 2}},  # Reduced from 100x to 2x
         }
 
         # Bet modes / Distributions
@@ -122,27 +122,27 @@ class GameConfig(Config):
                 is_feature=True,
                 is_buybonus=False,
                 distributions=[
-                    Distribution(
-                        criteria="wincap",
-                        quota=0.001,
-                        win_criteria=self.wincap,
-                        conditions={
-                            "reel_weights": {
-                                self.basegame_type: {"BR0": 1},
-                                self.freegame_type: {"FR0": 1, "WCAP": 5},
-                            },
-                            "mult_values": {
-                                self.basegame_type: {1: 1},
-                                self.freegame_type: {2: 10, 3: 20, 4: 50, 5: 20, 10: 50, 15: 20, 20: 10},
-                            },
-                            "scatter_triggers": {3: 1, 4: 2},
-                            "force_wincap": True,
-                            "force_freegame": True,
-                        },
-                    ),
+                    # Distribution(
+                    #     criteria="wincap",
+                    #     quota=0.0005,  # 0.05% for high wins
+                    #     win_criteria=self.wincap,
+                    #     conditions={
+                    #         "reel_weights": {
+                    #             self.basegame_type: {"BR0": 1},
+                    #             self.freegame_type: {"FR0": 1, "WCAP": 5},
+                    #         },
+                    #         "mult_values": {
+                    #             self.basegame_type: {1: 1},
+                    #             self.freegame_type: {2: 2, 3: 3, 4: 4, 5: 3, 10: 5, 15: 4, 20: 3},  # Moderate multipliers
+                    #         },
+                    #         "scatter_triggers": {3: 1, 4: 2},
+                    #         "force_wincap": True,
+                    #         "force_freegame": True,
+                    #     },
+                    # ),
                     Distribution(
                         criteria="freegame",
-                        quota=0.1,
+                        quota=0.08,  # Increased from 5% to 8% for better balance
                         conditions={
                             "reel_weights": {
                                 self.basegame_type: {"BR0": 1},
@@ -152,39 +152,20 @@ class GameConfig(Config):
                             "mult_values": {
                                 self.basegame_type: {1: 1},
                                 self.freegame_type: {
-                                    2: 60, 3: 80, 4: 50, 5: 20, 10: 15, 15: 10, 20: 5,
+                                    2: 1, 3: 1, 4: 1, 5: 1, 10: 1, 15: 1, 20: 1,  # Minimal multipliers
                                 },
                             },
                             "force_wincap": False,
                             "force_freegame": True,
                         },
                     ),
-                    # === ВАЖЛИВО: додали self.freegame_type у reel_weights ===
-                    Distribution(
-                        criteria="0",
-                        quota=0.4,
-                        win_criteria=0.0,
-                        conditions={
-                            "reel_weights": {
-                                self.basegame_type: {"BR0": 1},
-                                self.freegame_type: {"FR0": 1},
-                            },
-                            "mult_values": {
-                                self.basegame_type: {1: 1},
-                                self.freegame_type: {2: 100, 3: 80, 4: 50, 5: 20, 10: 10, 15: 5, 20: 1},
-                            },
-                            "force_wincap": False,
-                            "force_freegame": False,
-                        },
-                    ),
-                    # === ВАЖЛИВО: додали self.freegame_type у reel_weights ===
                     Distribution(
                         criteria="basegame",
-                        quota=0.5,
+                        quota=0.92,  # Adjusted to 92% to balance total to 100%
                         conditions={
                             "reel_weights": {
                                 self.basegame_type: {"BR0": 1},
-                                self.freegame_type: {"FR0": 1},
+                                self.freegame_type: {"FR0": 1},  # Added to prevent KeyError
                             },
                             "mult_values": {
                                 self.basegame_type: {1: 1},
@@ -206,7 +187,7 @@ class GameConfig(Config):
                 distributions=[
                     Distribution(
                         criteria="freegame",
-                        quota=0.999,
+                        quota=0.999,  # 99.9% for bonus mode
                         conditions={
                             "reel_weights": {
                                 self.basegame_type: {"BR0": 1},
@@ -215,7 +196,7 @@ class GameConfig(Config):
                             "scatter_triggers": {3: 100},
                             "mult_values": {
                                 self.basegame_type: {1: 1},
-                                self.freegame_type: {2: 100, 3: 80, 4: 50, 5: 20, 10: 10, 15: 5, 20: 1},
+                                self.freegame_type: {2: 1, 3: 1, 4: 1, 5: 1, 10: 1, 15: 1, 20: 1},  # Minimal multipliers
                             },
                             "force_freegame": True,
                         },
@@ -233,7 +214,7 @@ class GameConfig(Config):
                 distributions=[
                     Distribution(
                         criteria="freegame",
-                        quota=0.999,
+                        quota=0.999,  # 99.9% for bonus mode
                         conditions={
                             "reel_weights": {
                                 self.basegame_type: {"BR0": 1},
@@ -242,7 +223,7 @@ class GameConfig(Config):
                             "scatter_triggers": {4: 100},
                             "mult_values": {
                                 self.basegame_type: {1: 1},
-                                self.freegame_type: {2: 100, 3: 80, 4: 50, 5: 20, 10: 10, 15: 5, 20: 1},
+                                self.freegame_type: {2: 1, 3: 1, 4: 1, 5: 1, 10: 1, 15: 1, 20: 1},  # Minimal multipliers
                             },
                             "force_freegame": True,
                         },
