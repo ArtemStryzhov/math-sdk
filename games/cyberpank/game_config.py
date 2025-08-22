@@ -120,8 +120,8 @@ class GameConfig(Config):
                                 self.freegame_type: {"FR0": 1},
                             },
                             "mult_values": {
-                                self.basegame_type: {2: 100, 4: 80, 5: 50, 7: 20, 10: 10},
-                                self.freegame_type: {2: 100, 4: 80, 5: 50, 7: 20, 10: 10},
+                                self.basegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:50, 100:25, 250: 10, 500:10},
+                                self.freegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:100, 100:50, 250: 20, 500:20},
                             },
                             "scatter_triggers": {4: 1, 5: 1,},
                             "force_wincap": True,
@@ -138,8 +138,8 @@ class GameConfig(Config):
                             },
                             "scatter_triggers": {4: 1, 5: 1},
                             "mult_values": {
-                                self.basegame_type: {2: 100, 3: 80, 4: 50, 5: 20, 10: 10},
-                                self.freegame_type: {2: 100, 4: 80, 5: 50, 7: 20, 10: 10},
+                                self.basegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:50, 100:25, 250: 10, 500:10},
+                                self.freegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:100, 100:50, 250: 20, 500:20},
                             },
                             "force_wincap": False,
                             "force_freegame": True,
@@ -152,8 +152,8 @@ class GameConfig(Config):
                         conditions={
                             "reel_weights": {self.basegame_type: {"BR0": 1}},
                             "mult_values": {
-                                self.basegame_type: {2: 100, 4: 80, 5: 50, 7: 20, 10: 10},
-                                self.freegame_type: {2: 100, 4: 80, 5: 50, 7: 20, 10: 10},
+                                self.basegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:50, 100:25, 250: 10, 500:10},
+                                self.freegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:100, 100:50, 250: 20, 500:20},
                             },
                             "force_wincap": False,
                             "force_freegame": False,
@@ -164,7 +164,7 @@ class GameConfig(Config):
                         quota=0.5,
                         conditions={
                             "reel_weights": {self.basegame_type: {"BR0": 1}},
-                            "mult_values": {self.basegame_type: {2: 100, 4: 80, 5: 50, 7: 20, 10: 10}},
+                            "mult_values": {self.basegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:50, 100:25, 250: 10, 500:10}},
                             "force_wincap": False,
                             "force_freegame": False,
                         },
@@ -190,8 +190,8 @@ class GameConfig(Config):
                                 self.freegame_type: {"FR0": 1},
                             },
                             "mult_values": {
-                                self.basegame_type: {2: 100, 4: 80, 5: 50, 7: 20, 10: 10},
-                                self.freegame_type: {2: 100, 4: 80, 5: 50, 7: 20, 10: 10},
+                                self.basegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:50, 100:25, 250: 10, 500:10},
+                                self.freegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:100, 100:50, 250: 20, 500:20},
                             },
                             "scatter_triggers": {4: 5, 5: 5, 6: 5},
                             "force_wincap": True,
@@ -208,8 +208,8 @@ class GameConfig(Config):
                             },
                             "scatter_triggers": {4: 5, 5: 5, 6: 5},
                             "mult_values": {
-                                self.basegame_type: {2: 100, 4: 80, 5: 50, 7: 20, 10: 10},
-                                self.freegame_type: {2: 100, 4: 80, 5: 50, 7: 20, 10: 10},
+                                self.basegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:50, 100:25, 250: 10, 500:10},
+                                self.freegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:100, 100:50, 250: 20, 500:20},
                             },
                             "force_wincap": False,
                             "force_freegame": True,
