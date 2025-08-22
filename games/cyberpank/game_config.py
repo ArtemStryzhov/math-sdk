@@ -31,6 +31,7 @@ class GameConfig(Config):
         self.num_rows = [5] * self.num_reels
         # Board and Symbol Properties
         t1, t2, t3 = (8, 9), (10, 11), (12, 30)
+        s1, s2, s3 = (4, 4), (5, 5), (6, 6)
         pay_group = {
             (t1, "H1"): 3.0,
             (t2, "H1"): 4.0,
@@ -59,6 +60,9 @@ class GameConfig(Config):
             (t1, "L5"): 2.0,
             (t2, "L5"): 3.0,
             (t3, "L5"): 20.0,
+            (s1, "L5"): 6.0,
+            (s2, "L5"): 10.0,
+            (s3, "L5"): 200.0,
         }
         self.paytable = self.convert_range_table(pay_group)
 
