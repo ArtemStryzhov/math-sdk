@@ -60,9 +60,9 @@ class GameConfig(Config):
             (t1, "L5"): 2.0,
             (t2, "L5"): 3.0,
             (t3, "L5"): 20.0,
-            (s1, "L5"): 6.0,
-            (s2, "L5"): 10.0,
-            (s3, "L5"): 200.0,
+            (s1, "S"): 6.0,
+            (s2, "S"): 10.0,
+            (s3, "S"): 200.0,
         }
         self.paytable = self.convert_range_table(pay_group)
 

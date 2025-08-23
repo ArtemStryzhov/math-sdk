@@ -38,31 +38,42 @@ class Scatter:
         wild_key: str = "wild",
         multiplier_key: str = "multiplier",
         global_multiplier: int = 1,
+        *,
+        include_scatter: bool = True,   # <— новий прапорець
     ) -> dict:
         """Return win data for all paying symbols (scatter pay-anywhere).
-        ВАЖЛИВО: у scatter-pay вайлди НЕ підміняють символи, тож не додаємо їх до лічильників.
+
+        Правила:
+        - У scatter-pay вайлди НЕ підміняють символи (не додаємо W в лічильники).
+        - Скаттери (S) НІКОЛИ не вибухають (explode=False),
+          і можуть бути повністю виключені з підрахунку під час тумблів (include_scatter=False).
         """
-        return_data = {
-            "totalWin": 0,
-            "wins": [],
-        }
+        return_data = {"totalWin": 0.0, "wins": []}
         rows_for_overlay = []
         symbols_on_board = defaultdict(list)
-        wild_positions = []  # Збираємо для довідки/можливого GUI, але не додаємо до лічильників
         total_win = 0.0
+
+        scatter_syms = set(config.special_symbols.get("scatter", []))
+        wild_syms    = set(config.special_symbols.get(wild_key, []))
 
         # Розкласти позиції символів на полі
         for reel_idx, reel in enumerate(board):
             for row_idx, symbol in enumerate(reel):
-                if symbol.name in config.special_symbols.get(wild_key, []):
-                    wild_positions.append({"reel": reel_idx, "row": row_idx})
-                else:
-                    symbols_on_board[symbol.name].append({"reel": reel_idx, "row": row_idx})
+                name = symbol.name
+                # Вайлди збираємо, але НЕ додаємо до лічильників інших символів у scatter-pay
+                if name in wild_syms:
+                    continue
+                symbols_on_board[name].append({"reel": reel_idx, "row": row_idx})
 
-        # !!! НЕ додаємо wild до жодного символа (scatter-pay без підміни wild'ами)
+        # Порахувати кластери
         for sym in symbols_on_board:
+            # Під час тумблів можемо вимикати виплати по S
+            if sym in scatter_syms and not include_scatter:
+                continue
+
             win_size = len(symbols_on_board[sym])
-            if (win_size, sym) in config.paytable:
+            key = (win_size, sym)
+            if key in config.paytable:
                 # Підсумок мультиплікаторів на клітинках цього кластера (якщо є)
                 symbol_mult = 0.0
                 for p in symbols_on_board[sym]:
@@ -72,8 +83,10 @@ class Scatter:
                             symbol_mult += float(cell.get_attribute(multiplier_key))
                         except Exception:
                             pass
-                    # Позначити клітинки, що мають "вибухнути" при тумблі
-                    cell.assign_attribute({"explode": True})
+
+                    # Позначити до вибуху ТІЛЬКИ НЕ-скаттери
+                    if sym not in scatter_syms:
+                        cell.assign_attribute({"explode": True})
 
                 symbol_mult = max(symbol_mult, 1.0)
 
@@ -82,7 +95,7 @@ class Scatter:
                 )
                 rows_for_overlay.append(overlay_position[1])
 
-                pay = config.paytable[(win_size, sym)]
+                pay = float(config.paytable[key])
                 win_amount = pay * float(global_multiplier) * symbol_mult
 
                 symbol_win_data = {
@@ -93,10 +106,7 @@ class Scatter:
                         "globalMult": global_multiplier,
                         "clusterMult": symbol_mult,
                         "winWithoutMult": pay,
-                        "overlay": {
-                            "reel": overlay_position[0],
-                            "row": overlay_position[1],
-                        },
+                        "overlay": {"reel": overlay_position[0], "row": overlay_position[1]},
                     },
                 }
                 total_win += win_amount
