@@ -39,59 +39,70 @@ class Scatter:
         multiplier_key: str = "multiplier",
         global_multiplier: int = 1,
     ) -> dict:
-        """Return win data for all paying symbols"""
+        """Return win data for all paying symbols (scatter pay-anywhere).
+        ВАЖЛИВО: у scatter-pay вайлди НЕ підміняють символи, тож не додаємо їх до лічильників.
+        """
         return_data = {
             "totalWin": 0,
             "wins": [],
         }
         rows_for_overlay = []
         symbols_on_board = defaultdict(list)
-        wild_positions = []
+        wild_positions = []  # Збираємо для довідки/можливого GUI, але не додаємо до лічильників
         total_win = 0.0
+
+        # Розкласти позиції символів на полі
         for reel_idx, reel in enumerate(board):
             for row_idx, symbol in enumerate(reel):
-                if symbol.name not in config.special_symbols[wild_key]:
-                    symbols_on_board[symbol.name].append({"reel": reel_idx, "row": row_idx})
-                else:
+                if symbol.name in config.special_symbols.get(wild_key, []):
                     wild_positions.append({"reel": reel_idx, "row": row_idx})
+                else:
+                    symbols_on_board[symbol.name].append({"reel": reel_idx, "row": row_idx})
 
-        # Update all symbol positions with wilds, as this symbol is shared
+        # !!! НЕ додаємо wild до жодного символа (scatter-pay без підміни wild'ами)
         for sym in symbols_on_board:
-            if len(wild_positions) > 0:
-                symbols_on_board[sym].extend(wild_positions)
             win_size = len(symbols_on_board[sym])
             if (win_size, sym) in config.paytable:
-                symbol_mult = 0
+                # Підсумок мультиплікаторів на клітинках цього кластера (якщо є)
+                symbol_mult = 0.0
                 for p in symbols_on_board[sym]:
-                    if board[p["reel"]][p["row"]].check_attribute(multiplier_key):
-                        symbol_mult += board[p["reel"]][p["row"]].get_attribute(multiplier_key)
+                    cell = board[p["reel"]][p["row"]]
+                    if cell.check_attribute(multiplier_key):
+                        try:
+                            symbol_mult += float(cell.get_attribute(multiplier_key))
+                        except Exception:
+                            pass
+                    # Позначити клітинки, що мають "вибухнути" при тумблі
+                    cell.assign_attribute({"explode": True})
 
-                    board[p["reel"]][p["row"]].assign_attribute({"explode": True})
+                symbol_mult = max(symbol_mult, 1.0)
 
-                symbol_mult = max(symbol_mult, 1)
                 overlay_position = Scatter.get_central_scatter_position(
                     rows_for_overlay, symbols_on_board[sym], len(board), len(board[0])
                 )
                 rows_for_overlay.append(overlay_position[1])
+
+                pay = config.paytable[(win_size, sym)]
+                win_amount = pay * float(global_multiplier) * symbol_mult
+
                 symbol_win_data = {
                     "symbol": sym,
-                    "win": config.paytable[(win_size, sym)] * global_multiplier * symbol_mult,
+                    "win": win_amount,
                     "positions": symbols_on_board[sym],
                     "meta": {
                         "globalMult": global_multiplier,
                         "clusterMult": symbol_mult,
-                        "winWithoutMult": config.paytable[(win_size, sym)],
+                        "winWithoutMult": pay,
                         "overlay": {
                             "reel": overlay_position[0],
                             "row": overlay_position[1],
                         },
                     },
                 }
-                total_win += symbol_win_data["win"]
+                total_win += win_amount
                 return_data["wins"].append(symbol_win_data)
 
         return_data["totalWin"] = total_win
-
         return return_data
 
     @staticmethod
