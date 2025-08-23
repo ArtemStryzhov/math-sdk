@@ -42,7 +42,7 @@ class GameState(GameStateOverride):
 
             while self.win_data["totalWin"] > 0 and not (self.wincap_triggered):
                 self.tumble_game_board()
-                self.update_global_mult()  # Special mechanic - increase multiplier with every tumble
+                #self.update_global_mult()  # Special mechanic - increase multiplier with every tumble
                 self.get_scatterpays_update_wins()
 
             self.set_end_tumble_event()
