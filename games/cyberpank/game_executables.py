@@ -4,7 +4,8 @@ Game-specific executables.
 1) Під час FREE SPINS, якщо на спіні випав MULTIPLIER і спін виграшний,
    значення MULTIPLIER одразу входить у розрахунок цього ж спіну, а також додається
    до тотального множника раунду (global_multiplier) для наступних спінів раунду.
-2) У scatter-pay скаттери (S) не вибухають і рахуються тільки ПІСЛЯ завершення тумблів.
+2) У BASE множники застосовуються ТІЛЬКИ на поточний спін (без накопичення).
+3) У scatter-pay скаттери (S) не вибухають і рахуються тільки ПІСЛЯ завершення тумблів.
 """
 
 from copy import copy
@@ -65,48 +66,60 @@ class GameExecutables(GameCalculations):
           Нові MULTIPLIER-и цього спіну одразу впливають на підсумок спіну.
           Якщо після множення спін виграшний і на полі були MULTIPLIER-и — додаємо їх суму
           в self.global_multiplier (працюватиме з наступного спіну).
-        - У BASE логіка без змін.
+        - У BASE множимо виграш на board_mult (сума М на полі), без накопичення.
         """
         if self.gametype == self.config.freegame_type:
-            # 1) Збираємо множники з борда (сума М та їх позиції)
+            # --------- FREE SPINS: миттєво + накопичення ----------
             board_mult, mult_info = self.get_board_multipliers()
             sum_new = self._sum_new_multiplier_values(mult_info, board_mult)
 
-            # 2) Поточний тотальний множник перед цим спіном
             current_total = float(self.global_multiplier) if getattr(self, "global_multiplier", 1) else 1.0
-
-            # 3) Базовий тумбл-він (на момент виклику — вже містить поточний total,
-            #    бо get_scatterpays_update_wins() рахує з global_multiplier)
             base_tumble_win = copy(self.win_manager.spin_win)
 
-            # 4) Щоб "нові М" одразу вплинули на цей же спін, масштабуємо ще на
-            #    factor_total_adjust = (current_total + sum_new) / current_total
-            #    та на board_mult (мультиплікатори цього спіну по борду).
             factor_total_adjust = (current_total + sum_new) / current_total if current_total > 0 else (1.0 + sum_new)
             updated_win = base_tumble_win * float(board_mult) * float(factor_total_adjust)
 
-            # 5) Записуємо фінальний spin_win
             self.win_manager.set_spin_win(updated_win)
 
-            # 6) Якщо спін виграшний і є нові мультиплікатори — накопичуємо їх у тоталі
             if self.win_manager.spin_win > 0 and sum_new > 0:
-                # Передаємо у подію "базу" вже з урахуванням тоталу цього спіну,
-                # щоб інваріант події лишився: updatedWin == base_win * board_mult
+                # передаємо базу вже з тоталом цього спіну: інваріант події => updatedWin == base * board_mult
                 base_win_for_event = base_tumble_win * float(factor_total_adjust)
-
                 try:
                     send_mult_info_event(
                         self,
-                        board_mult,                 # множник борда (сума М цього спіну)
-                        mult_info,                  # деталі по клітинках М
-                        base_win_for_event,         # базовий win уже з тоталом
-                        self.win_manager.spin_win,  # фінальний win після board_mult (і тоталу)
+                        board_mult,
+                        mult_info,
+                        base_win_for_event,
+                        self.win_manager.spin_win,
                     )
                     update_tumble_win_event(self)
                 finally:
-                    # Нарощуємо глобальний множник для наступних спінів раунду
                     self.global_multiplier = current_total + sum_new
                     update_global_mult_event(self)
+
+        elif self.gametype == self.config.basegame_type:
+            # --------- BASE: тільки миттєва дія (на один спін), без накопичення ----------
+            board_mult, mult_info = self.get_board_multipliers()
+            base_tumble_win = copy(self.win_manager.spin_win)
+
+            # множимо лише на board_mult (жодних total-коефіцієнтів у базі)
+            updated_win = base_tumble_win * float(board_mult)
+            self.win_manager.set_spin_win(updated_win)
+
+            if self.win_manager.spin_win > 0 and len(mult_info) > 0:
+                # у базі інваріант події також: updatedWin == base * board_mult
+                try:
+                    send_mult_info_event(
+                        self,
+                        board_mult,
+                        mult_info,
+                        base_tumble_win,          # базовий win без тоталу
+                        self.win_manager.spin_win # фінальний win після board_mult
+                    )
+                    update_tumble_win_event(self)
+                finally:
+                    # НІЧОГО не накопичуємо в базі
+                    pass
 
         # Спільні події завершення
         if self.win_manager.spin_win > 0:
