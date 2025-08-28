@@ -16,9 +16,9 @@ class GameConfig(Config):
 
     def __init__(self):
         super().__init__()
-        self.game_id = "0_0_scatter"
+        self.game_id = "cyberpank"
         self.game_name = "sample_scatter"
-        self.provider_numer = 0
+        self.provider_number = 0  # fixed: was provider_numer
         self.working_name = "Sample scatter pay (pay anywhere)"
         self.wincap = 5000.0
         self.win_type = "scatter"
@@ -29,6 +29,7 @@ class GameConfig(Config):
         self.num_reels = 6
         # Optionally include variable number of rows per reel
         self.num_rows = [5] * self.num_reels
+
         # Board and Symbol Properties
         t1, t2, t3 = (8, 9), (10, 11), (12, 30)
         s1, s2, s3 = (4, 4), (5, 5), (6, 6)
@@ -67,8 +68,7 @@ class GameConfig(Config):
         self.paytable = self.convert_range_table(pay_group)
 
         self.include_padding = True
-        self.special_symbols = {"wild": ["W"],
-                                "scatter": ["S"], "multiplier": ["M"]}
+        self.special_symbols = {"wild": ["W"], "scatter": ["S"], "multiplier": ["M"]}
 
         self.freespin_triggers = {
             self.basegame_type: {
@@ -95,15 +95,52 @@ class GameConfig(Config):
             self.basegame_type: min(self.freespin_triggers[self.basegame_type].keys()) - 1,
             self.freegame_type: min(self.freespin_triggers[self.freegame_type].keys()) - 1,
         }
+
         # Reels
         reels = {"BR0": "BR0.csv", "FR0": "FR0.csv"}
         self.reels = {}
         for r, f in reels.items():
-            self.reels[r] = self.read_reels_csv(
-                os.path.join(self.reels_path, f))
+            self.reels[r] = self.read_reels_csv(os.path.join(self.reels_path, f))
 
         self.padding_reels[self.basegame_type] = self.reels["BR0"]
         self.padding_reels[self.freegame_type] = self.reels["FR0"]
+
+        # -------- Bet Modes & Distributions --------
+        mult_values_base = {
+            2: 300,
+            3: 190,
+            4: 180,
+            5: 170,
+            6: 160,
+            8: 150,
+            10: 120,
+            12: 100,
+            15: 90,
+            20: 90,
+            25: 70,
+            50: 60,
+            100: 25,
+            250: 8,
+            500: 3,
+        }
+        mult_values_free = {
+            2: 180,
+            3: 140,
+            4: 130,
+            5: 120,
+            6: 110,
+            8: 100,
+            10: 90,
+            12: 80,
+            15: 70,
+            20: 60,
+            25: 60,
+            50: 220,
+            100: 120,
+            250: 35,
+            500: 12,
+        }
+
         self.bet_modes = [
             BetMode(
                 name="base",
@@ -124,17 +161,17 @@ class GameConfig(Config):
                                 self.freegame_type: {"FR0": 1},
                             },
                             "mult_values": {
-                                self.basegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:50, 100:25, 250: 10, 500:10},
-                                self.freegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:100, 100:50, 250: 20, 500:20},
+                                self.basegame_type: mult_values_base,
+                                self.freegame_type: mult_values_free,
                             },
-                            "scatter_triggers": {4: 1, 5: 1,},
+                            "scatter_triggers": {4: 1, 5: 1},
                             "force_wincap": True,
                             "force_freegame": True,
                         },
                     ),
                     Distribution(
                         criteria="freegame",
-                        quota=0.1,
+                        quota=0.02,
                         conditions={
                             "reel_weights": {
                                 self.basegame_type: {"BR0": 1},
@@ -142,8 +179,8 @@ class GameConfig(Config):
                             },
                             "scatter_triggers": {4: 1, 5: 1},
                             "mult_values": {
-                                self.basegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:50, 100:25, 250: 10, 500:10},
-                                self.freegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:100, 100:50, 250: 20, 500:20},
+                                self.basegame_type: mult_values_base,
+                                self.freegame_type: mult_values_free,
                             },
                             "force_wincap": False,
                             "force_freegame": True,
@@ -151,13 +188,13 @@ class GameConfig(Config):
                     ),
                     Distribution(
                         criteria="0",
-                        quota=0.4,
+                        quota=0.58,
                         win_criteria=0.0,
                         conditions={
                             "reel_weights": {self.basegame_type: {"BR0": 1}},
                             "mult_values": {
-                                self.basegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:50, 100:25, 250: 10, 500:10},
-                                self.freegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:100, 100:50, 250: 20, 500:20},
+                                self.basegame_type: mult_values_base,
+                                self.freegame_type: mult_values_free,
                             },
                             "force_wincap": False,
                             "force_freegame": False,
@@ -165,10 +202,10 @@ class GameConfig(Config):
                     ),
                     Distribution(
                         criteria="basegame",
-                        quota=0.5,
+                        quota=0.4,
                         conditions={
                             "reel_weights": {self.basegame_type: {"BR0": 1}},
-                            "mult_values": {self.basegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:50, 100:25, 250: 10, 500:10}},
+                            "mult_values": {self.basegame_type: mult_values_base},
                             "force_wincap": False,
                             "force_freegame": False,
                         },
@@ -194,8 +231,8 @@ class GameConfig(Config):
                                 self.freegame_type: {"FR0": 1},
                             },
                             "mult_values": {
-                                self.basegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:50, 100:25, 250: 10, 500:10},
-                                self.freegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:100, 100:50, 250: 20, 500:20},
+                                self.basegame_type: mult_values_base,
+                                self.freegame_type: mult_values_free,
                             },
                             "scatter_triggers": {4: 5, 5: 5, 6: 5},
                             "force_wincap": True,
@@ -212,8 +249,8 @@ class GameConfig(Config):
                             },
                             "scatter_triggers": {4: 5, 5: 5, 6: 5},
                             "mult_values": {
-                                self.basegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:50, 100:25, 250: 10, 500:10},
-                                self.freegame_type: {2: 200, 3: 190, 4:180, 5: 170, 6: 160, 8: 150, 10:100, 12:90, 15: 80, 20: 70, 25:60, 50:100, 100:50, 250: 20, 500:20},
+                                self.basegame_type: mult_values_base,
+                                self.freegame_type: mult_values_free,
                             },
                             "force_wincap": False,
                             "force_freegame": True,
