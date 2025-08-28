@@ -23,7 +23,7 @@ class Config:
 
         # Win information
         self.min_denomination = 0.1
-        self.wincap = 5000
+        self.wincap = 10000
 
         # Game details
         self.reels = 5

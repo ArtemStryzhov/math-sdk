@@ -20,7 +20,7 @@ class GameConfig(Config):
         self.game_name = "sample_scatter"
         self.provider_number = 0  # fixed: was provider_numer
         self.working_name = "Sample scatter pay (pay anywhere)"
-        self.wincap = 5000.0
+        self.wincap = 10000.0
         self.win_type = "scatter"
         self.rtp = 0.9700
         self.construct_paths()
