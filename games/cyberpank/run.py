@@ -35,8 +35,8 @@ if __name__ == "__main__":
     profiling = False
 
     num_sim_args = {
-        "base": 100000,   # було 10_000
-        "bonus": 100000,  # було 10_000
+        "base": 10000,   # було 10_000
+        "bonus": 10000,  # було 10_000
     }
 
     run_conditions = {
