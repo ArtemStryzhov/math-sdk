@@ -107,7 +107,7 @@ class GameConfig(Config):
 
         # -------- Bet Modes & Distributions --------
         mult_values_base = {
-            2: 300,
+            2: 200,
             3: 190,
             4: 180,
             5: 170,
@@ -120,8 +120,8 @@ class GameConfig(Config):
             25: 70,
             50: 60,
             100: 25,
-            250: 8,
-            500: 3,
+            250: 18,
+            500: 12,
         }
         mult_values_free = {
             2: 180,
